@@ -9,8 +9,16 @@ Página web en línea para administrar un curso universitario:
 - 🗓️ **Calendario** visual mensual
 - 👥 **Equipo** (solo el admin reparte roles)
 
-Tú eres **admin**; los demás entran como **editor**. Para sumar personas,
-tú (admin) creas sus cuentas y ellos editan todo lo del curso.
+Roles:
+- **admin** — todo, incluida la pestaña Equipo (reparte roles).
+- **editor** — ver y **editar** el contenido del curso.
+- **espectador** — **solo ver** (no puede crear, editar ni borrar).
+
+Tú entras como **admin**; tú creas las cuentas y asignas el rol de cada persona.
+
+La página es **responsiva** (se adapta a celular) y se **actualiza sola**
+(lo que edita una persona lo ven las demás **sin recargar**, gracias a
+Realtime de Supabase, que `schema.sql` ya activa).
 
 ## Tecnología
 
@@ -57,30 +65,30 @@ tú (admin) creas sus cuentas y ellos editan todo lo del curso.
 
 ### 6. Publicar para tener el link
 1. Entra a <https://netlify.com> → inicia sesión.
-2. Arrastra la **carpeta `curso-admin`** (con `index.html` dentro) a la zona
+2. Arrastra la **carpeta `admicurseven`** (con `index.html` dentro) a la zona
    *“Drag and drop your site output folder here”*.
 3. Netlify te dará un **link** (puedes renombrarlo en *Site settings → Change site name*).
 
 > Para actualizar: vuelve a arrastrar la carpeta, o conecta un repositorio de
 > GitHub para que se publique solo con cada cambio.
 
-### 7. Agregar a las otras personas (editores)
+### 7. Agregar a las otras personas
 1. **Authentication → Users → Add user**: crea correo + contraseña de cada persona.
-2. Entran al link con esos datos y ya pueden editar eventos, deberes, pruebas y finanzas.
+2. Entran al link con esos datos. Por defecto son **editor** (pueden editar).
 3. En la pestaña **Equipo** (visible solo para ti) verás a todos y podrás
-   **hacer admin** a quien quieras.
+   cambiar el rol de cada uno en la lista:
+   - **admin**, **editor** o **espectador** (solo lectura).
 
 ---
 
-## Que los cambios se vean sin recargar (opcional)
+## Que los cambios se vean sin recargar
 
-Para que si uno edita, los demás lo vean al instante:
-
-1. Supabase → **Database → Replication**.
-2. Activa **Realtime** para las tablas `eventos`, `deberes`, `pruebas`,
-   `finanzas` y `profiles` (botón *Source* / añadir a la publicación).
-
-Si no lo activas, todo funciona igual; solo hay que recargar la página.
+Ya viene **activado**: la sección 4 de `supabase/schema.sql` agrega las tablas a
+Realtime. Verás un indicador **“En vivo”** (punto verde) en la barra superior;
+si dice “Sin conexión”, revisa tu internet. Si además quieres comprobarlo a
+mano: Supabase → **Database → Replication** y verifica que `eventos`,
+`deberes`, `pruebas`, `finanzas` y `profiles` estén en la publicación
+`supabase_realtime`.
 
 ---
 
@@ -95,8 +103,8 @@ Si no lo activas, todo funciona igual; solo hay que recargar la página.
 ## Archivos
 
 ```
-curso-admin/
+admicurseven/
 ├── index.html              # la página (pega aquí tus claves)
-├── supabase/schema.sql     # tablas + roles + permisos (RLS)
-└── README.md               # este archivo
+├── supabase/schema.sql     # tablas + roles + permisos (RLS) + realtime
+└── readme.md               # este archivo
 ```

@@ -5,15 +5,21 @@
 -- ============================================================
 
 -- ------------------------------------------------------------
--- 1) PERFILES (rol admin / editor) ligados a auth.users
+-- 1) PERFILES (rol admin / editor / espectador) ligados a auth.users
 -- ------------------------------------------------------------
 create table if not exists public.profiles (
   id         uuid primary key references auth.users(id) on delete cascade,
   email      text,
   nombre     text,
-  role       text not null default 'editor' check (role in ('admin','editor')),
+  role       text not null default 'editor' check (role in ('admin','editor','espectador')),
   created_at timestamptz not null default now()
 );
+
+-- Si la tabla ya existía con la restricción vieja, la actualizamos
+-- (agrega el rol 'espectador').
+alter table public.profiles drop constraint if exists profiles_role_check;
+alter table public.profiles add constraint profiles_role_check
+  check (role in ('admin','editor','espectador'));
 
 -- Crea el perfil automaticamente cuando se crea un usuario.
 create or replace function public.handle_new_user()
@@ -51,6 +57,21 @@ as $$
   select exists (
     select 1 from public.profiles
     where id = auth.uid() and role = 'admin'
+  );
+$$;
+
+-- Helper: ¿el usuario actual puede EDITAR? (admin o editor; los
+-- 'espectador' solo pueden leer)
+create or replace function public.can_edit()
+returns boolean
+language sql
+security definer
+stable
+set search_path = public
+as $$
+  select exists (
+    select 1 from public.profiles
+    where id = auth.uid() and role in ('admin','editor')
   );
 $$;
 
@@ -116,27 +137,70 @@ create table if not exists public.finanzas (
   created_at  timestamptz not null default now()
 );
 
--- RLS: acceso total para usuarios autenticados (son los editores de confianza)
+-- ------------------------------------------------------------
+-- 3) PERMISOS (RLS) de las tablas del curso
+-- ------------------------------------------------------------
+--   * SELECT: cualquier usuario autenticado (admin, editor, espectador)
+--   * INSERT/UPDATE/DELETE: solo admin y editor (los espectadores NO editan)
 do $$
 declare t text;
 begin
   foreach t in array array['eventos','deberes','pruebas','finanzas']
   loop
     execute format('alter table public.%I enable row level security;', t);
+
+    -- limpia políticas anteriores (permisos totales) si existían
     execute format('drop policy if exists "%s_editor_access" on public.%I;', t, t);
-    execute format(
-      'create policy "%s_editor_access" on public.%I '
-      'for all to authenticated using (true) with check (true);', t, t);
+    execute format('drop policy if exists "%s_read" on public.%I;', t, t);
+    execute format('drop policy if exists "%s_insert" on public.%I;', t, t);
+    execute format('drop policy if exists "%s_update" on public.%I;', t, t);
+    execute format('drop policy if exists "%s_delete" on public.%I;', t, t);
+
+    execute format('create policy "%s_read" on public.%I '
+      'for select to authenticated using (true);', t, t);
+
+    execute format('create policy "%s_insert" on public.%I '
+      'for insert to authenticated with check (public.can_edit());', t, t);
+
+    execute format('create policy "%s_update" on public.%I '
+      'for update to authenticated using (public.can_edit()) with check (public.can_edit());', t, t);
+
+    execute format('create policy "%s_delete" on public.%I '
+      'for delete to authenticated using (public.can_edit());', t, t);
   end loop;
 end $$;
 
 -- ------------------------------------------------------------
--- 3) NOTA IMPORTANTE (hacer una sola vez, como admin)
+-- 4) TIEMPO REAL (que los cambios se vean sin recargar)
+--    Agrega las tablas a la publicación de Realtime (idempotente).
+-- ------------------------------------------------------------
+do $$
+declare t text;
+begin
+  foreach t in array array['eventos','deberes','pruebas','finanzas','profiles']
+  loop
+    if not exists (
+      select 1 from pg_publication_tables
+      where pubname = 'supabase_realtime'
+        and schemaname = 'public' and tablename = t
+    ) then
+      execute format('alter publication supabase_realtime add table public.%I;', t);
+    end if;
+  end loop;
+end $$;
+
+-- ------------------------------------------------------------
+-- 5) NOTA IMPORTANTE (hacer una sola vez, como admin)
 --    El primer usuario que crees se registra como 'editor'.
 --    Para volverte ADMIN, corre:
 --
 --    update public.profiles set role = 'admin'
 --    where email = 'TU_CORREO@ejemplo.com';
+--
+--    Roles disponibles:
+--      admin       -> todo (incluye la pestaña Equipo)
+--      editor      -> ver y editar el contenido del curso
+--      espectador  -> SOLO ver (no puede crear, editar ni borrar)
 --
 --    Y en Authentication -> Providers -> Email, DESACTIVA
 --    "Allow new users to sign up" (asi solo tu creas cuentas).

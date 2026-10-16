@@ -508,6 +508,88 @@
       box-shadow: 0 10px 30px rgba(37, 99, 235, .4);
       display: none
     }
+
+    /* ---- Indicador "en vivo" ---- */
+    .live {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 9px;
+      border-radius: 99px;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      white-space: nowrap
+    }
+
+    .live.on {
+      background: #dcfce7;
+      color: #166534
+    }
+
+    .live.off {
+      background: #f1f5f9;
+      color: #94a3b8
+    }
+
+    .live .dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 99px;
+      background: currentColor
+    }
+
+    .live.on .dot {
+      animation: pulse 1.6s infinite
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1 }
+      50% { opacity: .3 }
+    }
+
+    .role.r-admin { background: #dbeafe; color: #1d4ed8 }
+    .role.r-editor { background: #dcfce7; color: #166534 }
+    .role.r-espectador { background: #f1f5f9; color: #475569 }
+
+    /* ---- Rol selector en Equipo ---- */
+    .role-select {
+      width: auto;
+      min-width: 130px;
+      padding: 6px 8px
+    }
+
+    /* ============ RESPONSIVO ============ */
+    .table-wrap {
+      -webkit-overflow-scrolling: touch
+    }
+
+    @media (max-width: 820px) {
+      .bar { padding: 10px 14px; gap: 10px; flex-wrap: wrap }
+      .bar .logo { font-size: 16px }
+      .who { text-align: right }
+      main { padding: 18px 12px 90px }
+      .head h2 { font-size: 18px }
+      nav { padding: 0 12px }
+      nav button { padding: 10px 12px; font-size: 14px }
+      th, td { padding: 9px 10px; font-size: 13px }
+      .cal-cell { min-height: 68px; padding: 4px }
+      .ev { font-size: 10px }
+      .cal-head h3 { font-size: 15px }
+      .modal { padding: 18px }
+      .stat .v { font-size: 19px }
+      .cards { grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)) }
+    }
+
+    @media (max-width: 560px) {
+      .who { display: none }
+      .bar { flex-wrap: nowrap }
+      .login-card { padding: 24px }
+      .cal-cell { min-height: 56px; padding: 3px }
+      .cal-cell .num { font-size: 11px }
+      .ev { padding: 1px 4px; margin-top: 2px }
+      .modal { width: 100%; max-height: 100%; border-radius: 0; height: 100% }
+      .overlay { padding: 0 }
+    }
   </style>
 </head>
 
@@ -534,6 +616,7 @@
       <div class="bar">
         <div class="logo">Panel del <span>Curso</span></div>
         <div class="sp"></div>
+        <span class="live off" id="live"><span class="dot"></span><span id="liveTxt">En vivo</span></span>
         <div class="who"><b id="whoName">—</b><br><span id="whoMail"></span></div>
         <span class="role" id="whoRole">editor</span>
         <button class="btn-ghost btn-sm" id="btnLogout">Salir</button>
@@ -577,7 +660,7 @@
     const sb = configured ? createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
 
     /* ---------------- estado ---------------- */
-    const state = { user: null, profile: null, tab: 'eventos', data: {}, calDate: new Date(), editing: null };
+    const state = { user: null, profile: null, tab: 'eventos', data: {}, calDate: new Date(), editing: null, subscribed: false, renderTimer: null };
 
     /* ---------------- módulos (config de tablas) ---------------- */
     const MODULES = {
@@ -671,6 +754,8 @@
       m.textContent = text; m.className = 'msg ' + (ok ? 'ok' : 'err');
       setTimeout(() => { m.className = 'msg'; }, 3000);
     }
+    const ROLE_LABEL = { admin: 'admin', editor: 'editor', espectador: 'espectador' };
+    function canEdit() { const r = state.profile && state.profile.role; return r === 'admin' || r === 'editor'; }
 
     /* ---------------- autenticación ---------------- */
     $('#btnLogin').onclick = doLogin;
@@ -702,19 +787,24 @@
     }
 
     async function start(user) {
+      if (state.user) return; // evita doble arranque (boot + onAuthStateChange)
       state.user = user;
       const { data: prof } = await sb.from('profiles').select('*').eq('id', user.id).maybeSingle();
       state.profile = prof || { email: user.email, nombre: user.email, role: 'editor' };
 
       $('#whoName').textContent = state.profile.nombre || state.profile.email;
       $('#whoMail').textContent = state.profile.email;
-      $('#whoRole').textContent = state.profile.role;
+      const rol = state.profile.role || 'editor';
+      const roleEl = $('#whoRole');
+      roleEl.textContent = ROLE_LABEL[rol] || rol;
+      roleEl.className = 'role r-' + rol;
       $('#login').classList.add('hidden');
       $('#app').classList.remove('hidden');
 
       buildTabs();
       await loadAll();
       show('eventos');
+      subscribe();
     }
 
     function buildTabs() {
@@ -741,14 +831,18 @@
 
     /* ---------------- navegación ---------------- */
     function show(tab) {
-      state.tab = tab;
-      $$('#tabs button').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
       const mod = MODULES[tab];
-      $('#vTitle').textContent = mod.title;
-      const canAdd = !mod.adminOnly && tab !== 'calendario';
+      if (!mod) tab = 'eventos';
+      if (mod && mod.adminOnly && (!state.profile || state.profile.role !== 'admin')) tab = 'eventos';
+      state.tab = tab;
+      const m = MODULES[tab];
+      $$('#tabs button').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+      $('#vTitle').textContent = m.title;
+      const canAdd = canEdit() && !m.adminOnly && tab !== 'calendario';
       $('#btnNew').classList.toggle('hidden', !canAdd);
       $('#btnNewFab').classList.toggle('hidden', !canAdd);
       const v = $('#view');
+      v.innerHTML = ''; // <-- evita que los componentes se dupliquen
       if (tab === 'calendario') renderCalendar(v);
       else if (tab === 'equipo') renderTeam(v);
       else renderTable(v, tab);
@@ -765,21 +859,24 @@
       if (tab === 'finanzas') v.appendChild(finStats(rows));
       const wrap = document.createElement('div'); wrap.className = 'table-wrap';
       if (!rows.length) {
-        wrap.innerHTML = `<div class="empty">No hay registros todavía. Usa “+ Nuevo”.</div>`;
+        wrap.innerHTML = `<div class="empty">${canEdit() ? 'No hay registros todavía. Usa “+ Nuevo”.' : 'No hay registros todavía.'}</div>`;
         v.appendChild(wrap); return;
       }
+      const editable = canEdit();
       const t = document.createElement('table');
-      t.innerHTML = `<thead><tr>${mod.cols.map(c => `<th>${c.l}</th>`).join('')}<th></th></tr></thead>`
+      t.innerHTML = `<thead><tr>${mod.cols.map(c => `<th>${c.l}</th>`).join('')}${editable ? '<th></th>' : ''}</tr></thead>`
         + `<tbody>${rows.map(r => `<tr>
         ${mod.cols.map(c => `<td>${c.render ? c.render(r) : esc(r[c.k] ?? '')}</td>`).join('')}
-        <td><div class="row-actions">
+        ${editable ? `<td><div class="row-actions">
           <button class="btn-ghost btn-sm" data-edit="${r.id}">Editar</button>
           <button class="btn-bad btn-sm" data-del="${r.id}">Borrar</button>
-        </div></td></tr>`).join('')}</tbody>`;
+        </div></td>` : ''}</tr>`).join('')}</tbody>`;
       wrap.appendChild(t);
       v.appendChild(wrap);
-      t.querySelectorAll('[data-edit]').forEach(b => b.onclick = () => openForm(tab, +b.dataset.edit));
-      t.querySelectorAll('[data-del]').forEach(b => b.onclick = () => del(tab, +b.dataset.del));
+      if (editable) {
+        t.querySelectorAll('[data-edit]').forEach(b => b.onclick = () => openForm(tab, +b.dataset.edit));
+        t.querySelectorAll('[data-del]').forEach(b => b.onclick = () => del(tab, +b.dataset.del));
+      }
     }
     function finStats(rows) {
       const ing = rows.filter(r => r.tipo === 'ingreso').reduce((s, r) => s + Number(r.monto || 0), 0);
@@ -847,28 +944,43 @@
     function renderTeam(v) {
       const rows = sortRows(state.data.profiles || [], null);
       const hint = document.createElement('div'); hint.className = 'empty'; hint.style.marginBottom = '16px';
-      hint.innerHTML = 'Para crear una cuenta nueva: <b>Supabase → Authentication → Add user</b> ' +
-        '(correo y contraseña). Al crearla, aparecerá aquí y podrás asignarle rol.';
-      if (rows.length) {
-        const wrap = document.createElement('div'); wrap.className = 'table-wrap';
-        const t = document.createElement('table');
-        t.innerHTML = `<thead><tr><th>Nombre</th><th>Correo</th><th>Rol</th><th></th></tr></thead>
-      <tbody>${rows.map(r => `<tr>
+      hint.innerHTML = 'Para crear una cuenta nueva: <b>Supabase → Authentication → Users → Add user</b> ' +
+        '(correo y contraseña). Al crearla, aparecerá aquí y podrás asignarle rol. ' +
+        'Los <b>espectadores</b> solo pueden ver, no editar.';
+      v.append(hint);
+      if (!rows.length) return;
+      const wrap = document.createElement('div'); wrap.className = 'table-wrap';
+      const t = document.createElement('table');
+      t.innerHTML = `<thead><tr><th>Nombre</th><th>Correo</th><th>Rol</th></tr></thead>
+      <tbody>${rows.map(r => {
+        const rol = r.role || 'editor';
+        const opts = ['admin', 'editor', 'espectador'].map(x =>
+          `<option value="${x}" ${x === rol ? 'selected' : ''}>${ROLE_LABEL[x]}</option>`).join('');
+        return `<tr>
         <td>${esc(r.nombre || '—')}</td>
         <td>${esc(r.email || '—')}</td>
-        <td><span class="badge ${r.role === 'admin' ? 'b-prox' : 'b-fin'}">${r.role}</span></td>
-        <td><div class="row-actions">${r.role === 'admin'
-            ? `<button class="btn-ghost btn-sm" data-role="editor" data-id="${r.id}">Hacer editor</button>`
-            : `<button class="btn-brand btn-sm" data-role="admin" data-id="${r.id}">Hacer admin</button>`}</div></td>
-      </tr>`).join('')}</tbody>`;
-        wrap.appendChild(t); v.append(hint, wrap);
-        t.querySelectorAll('[data-role]').forEach(b => b.onclick = () => setRole(b.dataset.id, b.dataset.role));
-      } else { v.append(hint); }
+        <td><select class="role-select" data-id="${r.id}">${opts}</select></td>
+      </tr>`;
+      }).join('')}</tbody>`;
+      wrap.appendChild(t); v.append(wrap);
+      t.querySelectorAll('.role-select').forEach(sel => {
+        sel.onchange = () => setRole(sel.dataset.id, sel.value, sel);
+      });
     }
-    async function setRole(id, role) {
+    async function setRole(id, role, sel) {
       const { error } = await sb.from('profiles').update({ role }).eq('id', id);
-      if (error) { alert('No se pudo cambiar el rol: ' + error.message); return; }
-      await loadAll(); show('equipo');
+      if (error) {
+        alert('No se pudo cambiar el rol: ' + error.message);
+        await loadAll(); show('equipo'); return;
+      }
+      const p = (state.data.profiles || []).find(x => x.id === id);
+      if (p) p.role = role;
+      // si me cambié mi propio rol, refresco la barra
+      if (state.user && id === state.user.id) {
+        state.profile.role = role;
+        const el = $('#whoRole'); el.textContent = ROLE_LABEL[role]; el.className = 'role r-' + role;
+        buildTabs();
+      }
     }
 
     /* ---------------- calendario ---------------- */
@@ -930,14 +1042,44 @@
       return out;
     }
 
-    /* ---------------- realtime ---------------- */
+    /* ---------------- tiempo real (sin recargar) ---------------- */
+    function setLive(on) {
+      const el = $('#live');
+      if (!el) return;
+      el.className = 'live ' + (on ? 'on' : 'off');
+      $('#liveTxt').textContent = on ? 'En vivo' : 'Sin conexión';
+    }
+    async function reloadTable(table) {
+      const { data, error } = await sb.from(table).select('*');
+      if (!error) state.data[table] = data || [];
+    }
+    function scheduleRender() {
+      clearTimeout(state.renderTimer);
+      state.renderTimer = setTimeout(() => { show(state.tab); }, 120);
+    }
+    async function handleChange(payload) {
+      await reloadTable(payload.table);
+      if (payload.table === 'profiles' && state.user) {
+        const me = (state.data.profiles || []).find(x => x.id === state.user.id);
+        if (me && me.role !== state.profile.role) {
+          state.profile.role = me.role;
+          const el = $('#whoRole');
+          el.textContent = ROLE_LABEL[me.role] || me.role;
+          el.className = 'role r-' + me.role;
+          buildTabs();
+        }
+      }
+      scheduleRender();
+    }
     function subscribe() {
-      sb.channel('cambios')
-        .on('postgres_changes', { event: '*', schema: 'public' }, async () => {
-          await loadAll();
-          show(state.tab);
-        })
-        .subscribe();
+      if (state.subscribed) return;
+      state.subscribed = true;
+      const tablas = ['eventos', 'deberes', 'pruebas', 'finanzas', 'profiles'];
+      let ch = sb.channel('cambios-curso');
+      for (const tbl of tablas) {
+        ch = ch.on('postgres_changes', { event: '*', schema: 'public', table: tbl }, handleChange);
+      }
+      ch.subscribe((status) => setLive(status === 'SUBSCRIBED'));
     }
 
     /* ---------------- arranque ---------------- */
@@ -946,10 +1088,11 @@
       $('#loginMsg').textContent = 'Antes de usar: abre este archivo y pega SUPABASE_URL y SUPABASE_ANON_KEY.';
       $('#loginMsg').className = 'msg err';
     } else {
+      setLive(false);
       sb.auth.onAuthStateChange((_e, session) => {
         if (session && !state.user) start(session.user);
       });
-      boot().then(() => { if (state.user) subscribe(); });
+      boot();
     }
   </script>
 </body>
