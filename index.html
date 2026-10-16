@@ -1,0 +1,957 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Panel del Curso</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card: #ffffff;
+      --ink: #0f172a;
+      --muted: #64748b;
+      --line: #e2e8f0;
+      --brand: #2563eb;
+      --brand2: #1d4ed8;
+      --ok: #16a34a;
+      --warn: #d97706;
+      --bad: #dc2626;
+      --soft: #f1f5f9;
+    }
+
+    * {
+      box-sizing: border-box
+    }
+
+    body {
+      margin: 0;
+      font-family: system-ui, Segoe UI, Roboto, Arial, sans-serif;
+      color: var(--ink);
+      background: #f8fafc
+    }
+
+    button {
+      font: inherit;
+      cursor: pointer;
+      border: none;
+      border-radius: 8px;
+      padding: 9px 14px
+    }
+
+    input,
+    select,
+    textarea {
+      font: inherit;
+      width: 100%;
+      padding: 9px 10px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff
+    }
+
+    input:focus,
+    select:focus,
+    textarea:focus {
+      outline: 2px solid #bfdbfe;
+      border-color: var(--brand)
+    }
+
+    .btn-brand {
+      background: var(--brand);
+      color: #fff
+    }
+
+    .btn-brand:hover {
+      background: var(--brand2)
+    }
+
+    .btn-ghost {
+      background: var(--soft);
+      color: var(--ink)
+    }
+
+    .btn-ghost:hover {
+      background: #e2e8f0
+    }
+
+    .btn-bad {
+      background: #fee2e2;
+      color: var(--bad)
+    }
+
+    .btn-bad:hover {
+      background: #fecaca
+    }
+
+    .btn-sm {
+      padding: 5px 10px;
+      font-size: 13px
+    }
+
+    /* ---- Login ---- */
+    #login {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #1e3a8a, #0f172a)
+    }
+
+    .login-card {
+      background: #fff;
+      padding: 34px;
+      border-radius: 16px;
+      width: min(92vw, 380px);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, .35)
+    }
+
+    .login-card h1 {
+      margin: 0 0 4px;
+      font-size: 22px
+    }
+
+    .login-card p {
+      margin: 0 0 22px;
+      color: var(--muted);
+      font-size: 14px
+    }
+
+    .field {
+      margin-bottom: 14px
+    }
+
+    .field label {
+      display: block;
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 5px
+    }
+
+    .msg {
+      font-size: 13px;
+      border-radius: 8px;
+      padding: 9px 11px;
+      margin-top: 12px;
+      display: none
+    }
+
+    .msg.err {
+      display: block;
+      background: #fee2e2;
+      color: var(--bad)
+    }
+
+    .msg.ok {
+      display: block;
+      background: #dcfce7;
+      color: #166534
+    }
+
+    /* ---- App ---- */
+    header {
+      background: #fff;
+      border-bottom: 1px solid var(--line);
+      position: sticky;
+      top: 0;
+      z-index: 20
+    }
+
+    .bar {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 12px 18px;
+      display: flex;
+      align-items: center;
+      gap: 14px
+    }
+
+    .bar .logo {
+      font-weight: 800;
+      font-size: 18px
+    }
+
+    .bar .logo span {
+      color: var(--brand)
+    }
+
+    .bar .sp {
+      flex: 1
+    }
+
+    .who {
+      font-size: 13px;
+      color: var(--muted);
+      text-align: right;
+      line-height: 1.25
+    }
+
+    .who b {
+      color: var(--ink)
+    }
+
+    .role {
+      font-size: 11px;
+      background: #dbeafe;
+      color: var(--brand2);
+      padding: 2px 8px;
+      border-radius: 99px;
+      font-weight: 700
+    }
+
+    nav {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 18px;
+      display: flex;
+      gap: 6px;
+      overflow-x: auto
+    }
+
+    nav button {
+      background: transparent;
+      border-radius: 8px 8px 0 0;
+      color: var(--muted);
+      font-weight: 600;
+      padding: 11px 14px;
+      border-bottom: 3px solid transparent;
+      white-space: nowrap
+    }
+
+    nav button.active {
+      color: var(--brand);
+      border-bottom-color: var(--brand)
+    }
+
+    main {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 22px 18px 60px
+    }
+
+    .head {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px
+    }
+
+    .head h2 {
+      margin: 0;
+      font-size: 20px
+    }
+
+    .head .sp {
+      flex: 1
+    }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 12px;
+      margin-bottom: 18px
+    }
+
+    .stat {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 14px
+    }
+
+    .stat .k {
+      font-size: 12px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .4px
+    }
+
+    .stat .v {
+      font-size: 22px;
+      font-weight: 800;
+      margin-top: 4px
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      overflow: hidden
+    }
+
+    th,
+    td {
+      text-align: left;
+      padding: 11px 12px;
+      border-bottom: 1px solid var(--line);
+      font-size: 14px;
+      vertical-align: top
+    }
+
+    th {
+      background: var(--soft);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: .4px;
+      color: var(--muted)
+    }
+
+    tr:last-child td {
+      border-bottom: none
+    }
+
+    .row-actions {
+      display: flex;
+      gap: 6px;
+      justify-content: flex-end
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+      border-radius: 12px
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 3px 9px;
+      border-radius: 99px;
+      font-size: 12px;
+      font-weight: 700
+    }
+
+    .b-prox {
+      background: #dbeafe;
+      color: #1e40af
+    }
+
+    .b-curso {
+      background: #dcfce7;
+      color: #166534
+    }
+
+    .b-fin {
+      background: #f1f5f9;
+      color: #64748b
+    }
+
+    .b-pend {
+      background: #fef3c7;
+      color: #92400e
+    }
+
+    .b-hecho {
+      background: #dcfce7;
+      color: #166534
+    }
+
+    .b-ing {
+      background: #dcfce7;
+      color: #166534
+    }
+
+    .b-gas {
+      background: #fee2e2;
+      color: #b91c1c
+    }
+
+    .muted {
+      color: var(--muted)
+    }
+
+    .empty {
+      padding: 40px;
+      text-align: center;
+      color: var(--muted);
+      background: #fff;
+      border: 1px dashed var(--line);
+      border-radius: 12px
+    }
+
+    /* ---- Modal ---- */
+    .overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, .55);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 50;
+      padding: 16px
+    }
+
+    .overlay.show {
+      display: flex
+    }
+
+    .modal {
+      background: #fff;
+      border-radius: 16px;
+      width: min(96vw, 520px);
+      max-height: 92vh;
+      overflow: auto;
+      padding: 24px
+    }
+
+    .modal h3 {
+      margin: 0 0 18px;
+      font-size: 19px
+    }
+
+    .modal .actions {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+      margin-top: 20px
+    }
+
+    /* ---- Calendario ---- */
+    .cal {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      overflow: hidden
+    }
+
+    .cal-head {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--line)
+    }
+
+    .cal-head h3 {
+      margin: 0;
+      font-size: 17px;
+      flex: 1;
+      text-transform: capitalize
+    }
+
+    .cal-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr)
+    }
+
+    .cal-grid .dow {
+      background: var(--soft);
+      text-align: center;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--muted);
+      padding: 8px 0;
+      text-transform: uppercase
+    }
+
+    .cal-cell {
+      min-height: 92px;
+      border-right: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+      padding: 6px
+    }
+
+    .cal-cell:nth-child(7n) {
+      border-right: none
+    }
+
+    .cal-cell .num {
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 700
+    }
+
+    .cal-cell.out {
+      background: #fbfcfe
+    }
+
+    .cal-cell.today {
+      background: #eff6ff
+    }
+
+    .ev {
+      font-size: 11px;
+      border-radius: 6px;
+      padding: 2px 5px;
+      margin-top: 3px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      font-weight: 600
+    }
+
+    .ev-e {
+      background: #dbeafe;
+      color: #1e40af
+    }
+
+    .ev-d {
+      background: #fef3c7;
+      color: #92400e
+    }
+
+    .ev-p {
+      background: #fee2e2;
+      color: #b91c1c
+    }
+
+    .hidden {
+      display: none !important
+    }
+
+    .fab {
+      position: fixed;
+      right: 22px;
+      bottom: 22px;
+      border-radius: 99px;
+      padding: 14px 20px;
+      box-shadow: 0 10px 30px rgba(37, 99, 235, .4);
+      display: none
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- ================= LOGIN ================= -->
+  <section id="login">
+    <div class="login-card">
+      <h1>Panel del Curso</h1>
+      <p>Eventos, deberes, pruebas, finanzas y calendario.</p>
+      <div class="field"><label>Correo</label><input id="email" type="email" autocomplete="username"
+          placeholder="tucorreo@ejemplo.com"></div>
+      <div class="field"><label>Contraseña</label><input id="pass" type="password" autocomplete="current-password"
+          placeholder="••••••••"></div>
+      <button class="btn-brand" style="width:100%" id="btnLogin">Entrar</button>
+      <div class="msg" id="loginMsg"></div>
+      <p style="margin-top:16px;font-size:12px" class="muted">Las cuentas las crea el administrador.</p>
+    </div>
+  </section>
+
+  <!-- ================= APP ================= -->
+  <section id="app" class="hidden">
+    <header>
+      <div class="bar">
+        <div class="logo">Panel del <span>Curso</span></div>
+        <div class="sp"></div>
+        <div class="who"><b id="whoName">—</b><br><span id="whoMail"></span></div>
+        <span class="role" id="whoRole">editor</span>
+        <button class="btn-ghost btn-sm" id="btnLogout">Salir</button>
+      </div>
+      <nav id="tabs"></nav>
+    </header>
+    <main>
+      <div class="head">
+        <h2 id="vTitle">Eventos</h2>
+        <div class="sp"></div>
+        <button class="btn-brand hidden" id="btnNew">+ Nuevo</button>
+      </div>
+      <div id="view"></div>
+    </main>
+    <button class="btn-brand fab" id="btnNewFab">+ Nuevo</button>
+  </section>
+
+  <!-- ================= MODAL ================= -->
+  <div class="overlay" id="overlay">
+    <div class="modal">
+      <h3 id="modalTitle">Nuevo</h3>
+      <form id="form"></form>
+      <div class="actions">
+        <button type="button" class="btn-ghost" id="btnCancel">Cancelar</button>
+        <button type="button" class="btn-brand" id="btnSave">Guardar</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    /* =========================================================================
+       1) CONFIGURA AQUÍ (Supabase -> Project Settings -> API)
+       ========================================================================= */
+    const SUPABASE_URL = "https://afjyjefpvetufseyhadw.supabase.co";      // ej: https://abcd1234.supabase.co
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFmanlqZWZwdmV0dWZzZXloYWR3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIxNzg0NjAsImV4cCI6MjEwNzc1NDQ2MH0.ViXI42U5JiwSORPFgG2Qfj7xBcz3K-OBy9Wq58tDVhg";      // la "anon public" key
+    /* ========================================================================= */
+
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+
+    const configured = !SUPABASE_URL.startsWith('PEGA_AQUI');
+    const sb = configured ? createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+
+    /* ---------------- estado ---------------- */
+    const state = { user: null, profile: null, tab: 'eventos', data: {}, calDate: new Date(), editing: null };
+
+    /* ---------------- módulos (config de tablas) ---------------- */
+    const MODULES = {
+      eventos: {
+        icon: '📅', title: 'Eventos', table: 'eventos', order: 'inicio',
+        fields: [
+          { k: 'titulo', l: 'Título', t: 'text', req: true },
+          { k: 'inicio', l: 'Inicio', t: 'date', req: true },
+          { k: 'fin', l: 'Fin', t: 'date' },
+          { k: 'descripcion', l: 'Descripción', t: 'textarea' }
+        ],
+        cols: [
+          { l: 'Título', k: 'titulo' },
+          { l: 'Inicio', render: r => fmt(r.inicio) },
+          { l: 'Fin', render: r => fmt(r.fin) },
+          { l: 'Estado', render: r => estadoEvento(r) }
+        ]
+      },
+      deberes: {
+        icon: '📝', title: 'Deberes', table: 'deberes', order: 'entrega',
+        fields: [
+          { k: 'titulo', l: 'Título', t: 'text', req: true },
+          { k: 'materia', l: 'Materia', t: 'text' },
+          { k: 'entrega', l: 'Entrega', t: 'date' },
+          { k: 'estado', l: 'Estado', t: 'select', opts: ['pendiente', 'hecho'] },
+          { k: 'descripcion', l: 'Descripción', t: 'textarea' }
+        ],
+        cols: [
+          { l: 'Título', k: 'titulo' },
+          { l: 'Materia', render: r => r.materia || '—' },
+          { l: 'Entrega', render: r => fmt(r.entrega) },
+          { l: 'Estado', render: r => `<span class="badge ${r.estado === 'hecho' ? 'b-hecho' : 'b-pend'}">${r.estado}</span>` }
+        ]
+      },
+      pruebas: {
+        icon: '🧪', title: 'Pruebas / Exámenes', table: 'pruebas', order: 'fecha',
+        fields: [
+          { k: 'titulo', l: 'Título', t: 'text', req: true },
+          { k: 'materia', l: 'Materia', t: 'text' },
+          { k: 'fecha', l: 'Fecha', t: 'date' },
+          { k: 'peso', l: 'Peso (%)', t: 'number' },
+          { k: 'nota', l: 'Nota', t: 'number' },
+          { k: 'descripcion', l: 'Descripción', t: 'textarea' }
+        ],
+        cols: [
+          { l: 'Título', k: 'titulo' },
+          { l: 'Materia', render: r => r.materia || '—' },
+          { l: 'Fecha', render: r => fmt(r.fecha) },
+          { l: 'Peso', render: r => r.peso ? r.peso + '%' : '—' },
+          { l: 'Nota', render: r => r.nota != null ? r.nota : '—' }
+        ]
+      },
+      finanzas: {
+        icon: '💵', title: 'Finanzas del Curso', table: 'finanzas', order: 'fecha',
+        fields: [
+          { k: 'fecha', l: 'Fecha', t: 'date', req: true, def: hoyISO },
+          { k: 'concepto', l: 'Concepto', t: 'text', req: true },
+          { k: 'estudiante', l: 'Estudiante', t: 'text' },
+          { k: 'tipo', l: 'Tipo', t: 'select', opts: ['ingreso', 'gasto'] },
+          { k: 'monto', l: 'Monto', t: 'number', req: true }
+        ],
+        cols: [
+          { l: 'Fecha', render: r => fmt(r.fecha) },
+          { l: 'Concepto', k: 'concepto' },
+          { l: 'Estudiante', render: r => r.estudiante || '—' },
+          { l: 'Tipo', render: r => `<span class="badge ${r.tipo === 'ingreso' ? 'b-ing' : 'b-gas'}">${r.tipo}</span>` },
+          { l: 'Monto', render: r => money(r.monto) }
+        ]
+      },
+      calendario: { icon: '🗓️', title: 'Calendario', table: null },
+      equipo: { icon: '👥', title: 'Equipo', table: 'profiles', adminOnly: true }
+    };
+
+    /* ---------------- utilidades ---------------- */
+    const $ = s => document.querySelector(s);
+    const $$ = s => [...document.querySelectorAll(s)];
+    const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+    const pad = n => String(n).padStart(2, '0');
+    function hoyISO() { const d = new Date(); return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`; }
+    function fmt(d) { if (!d) return '—'; const [y, m, dd] = d.split('-'); return `${dd}/${m}/${y}`; }
+    function money(n) { return '$' + Number(n || 0).toLocaleString('es-EC', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+    function estadoEvento(r) {
+      const hoy = hoyISO();
+      if (r.inicio > hoy) return '<span class="badge b-prox">Próximo</span>';
+      if (r.fin && hoy > r.fin) return '<span class="badge b-fin">Finalizado</span>';
+      if (r.inicio <= hoy && (!r.fin || hoy <= r.fin)) return '<span class="badge b-curso">En curso</span>';
+      return '<span class="badge b-fin">—</span>';
+    }
+    function toast(text, ok = true) {
+      const m = $('#loginMsg');
+      m.textContent = text; m.className = 'msg ' + (ok ? 'ok' : 'err');
+      setTimeout(() => { m.className = 'msg'; }, 3000);
+    }
+
+    /* ---------------- autenticación ---------------- */
+    $('#btnLogin').onclick = doLogin;
+    $('#pass').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+    $('#btnLogout').onclick = async () => { await sb.auth.signOut(); location.reload(); };
+
+    async function doLogin() {
+      const email = $('#email').value.trim();
+      const pass = $('#pass').value;
+      const m = $('#loginMsg');
+      if (!configured) { m.textContent = 'Falta configurar SUPABASE_URL y SUPABASE_ANON_KEY en el archivo.'; m.className = 'msg err'; return; }
+      if (!email || !pass) { m.textContent = 'Escribe correo y contraseña.'; m.className = 'msg err'; return; }
+      m.className = 'msg';
+      const { error } = await sb.auth.signInWithPassword({ email, password: pass });
+      if (error) { m.textContent = traducir(error.message); m.className = 'msg err'; }
+    }
+
+    function traducir(t) {
+      if (/Invalid login/i.test(t)) return 'Correo o contraseña incorrectos.';
+      if (/Email not confirmed/i.test(t)) return 'Debes confirmar tu correo.';
+      return t;
+    }
+
+    async function boot() {
+      if (!configured) { $('#login').classList.remove('hidden'); return; }
+      const { data: { session } } = await sb.auth.getSession();
+      if (!session) { $('#login').classList.remove('hidden'); return; }
+      await start(session.user);
+    }
+
+    async function start(user) {
+      state.user = user;
+      const { data: prof } = await sb.from('profiles').select('*').eq('id', user.id).maybeSingle();
+      state.profile = prof || { email: user.email, nombre: user.email, role: 'editor' };
+
+      $('#whoName').textContent = state.profile.nombre || state.profile.email;
+      $('#whoMail').textContent = state.profile.email;
+      $('#whoRole').textContent = state.profile.role;
+      $('#login').classList.add('hidden');
+      $('#app').classList.remove('hidden');
+
+      buildTabs();
+      await loadAll();
+      show('eventos');
+    }
+
+    function buildTabs() {
+      const nav = $('#tabs'); nav.innerHTML = '';
+      for (const [key, mod] of Object.entries(MODULES)) {
+        if (mod.adminOnly && state.profile.role !== 'admin') continue;
+        const b = document.createElement('button');
+        b.textContent = mod.icon + ' ' + mod.title;
+        b.dataset.tab = key;
+        b.onclick = () => show(key);
+        nav.appendChild(b);
+      }
+    }
+
+    /* ---------------- carga de datos ---------------- */
+    async function loadAll() {
+      for (const mod of Object.values(MODULES)) {
+        if (!mod.table) continue;
+        const { data, error } = await sb.from(mod.table).select('*');
+        state.data[mod.table] = error ? [] : (data || []);
+        if (error) console.error(mod.table, error.message);
+      }
+    }
+
+    /* ---------------- navegación ---------------- */
+    function show(tab) {
+      state.tab = tab;
+      $$('#tabs button').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+      const mod = MODULES[tab];
+      $('#vTitle').textContent = mod.title;
+      const canAdd = !mod.adminOnly && tab !== 'calendario';
+      $('#btnNew').classList.toggle('hidden', !canAdd);
+      $('#btnNewFab').classList.toggle('hidden', !canAdd);
+      const v = $('#view');
+      if (tab === 'calendario') renderCalendar(v);
+      else if (tab === 'equipo') renderTeam(v);
+      else renderTable(v, tab);
+    }
+
+    /* ---------------- tabla genérica ---------------- */
+    function sortRows(rows, order) {
+      if (!order) return rows;
+      return [...rows].sort((a, b) => String(a[order] || '9999').localeCompare(String(b[order] || '9999')));
+    }
+    function renderTable(v, tab) {
+      const mod = MODULES[tab];
+      const rows = sortRows(state.data[mod.table] || [], mod.order);
+      if (tab === 'finanzas') v.appendChild(finStats(rows));
+      const wrap = document.createElement('div'); wrap.className = 'table-wrap';
+      if (!rows.length) {
+        wrap.innerHTML = `<div class="empty">No hay registros todavía. Usa “+ Nuevo”.</div>`;
+        v.appendChild(wrap); return;
+      }
+      const t = document.createElement('table');
+      t.innerHTML = `<thead><tr>${mod.cols.map(c => `<th>${c.l}</th>`).join('')}<th></th></tr></thead>`
+        + `<tbody>${rows.map(r => `<tr>
+        ${mod.cols.map(c => `<td>${c.render ? c.render(r) : esc(r[c.k] ?? '')}</td>`).join('')}
+        <td><div class="row-actions">
+          <button class="btn-ghost btn-sm" data-edit="${r.id}">Editar</button>
+          <button class="btn-bad btn-sm" data-del="${r.id}">Borrar</button>
+        </div></td></tr>`).join('')}</tbody>`;
+      wrap.appendChild(t);
+      v.appendChild(wrap);
+      t.querySelectorAll('[data-edit]').forEach(b => b.onclick = () => openForm(tab, +b.dataset.edit));
+      t.querySelectorAll('[data-del]').forEach(b => b.onclick = () => del(tab, +b.dataset.del));
+    }
+    function finStats(rows) {
+      const ing = rows.filter(r => r.tipo === 'ingreso').reduce((s, r) => s + Number(r.monto || 0), 0);
+      const gas = rows.filter(r => r.tipo === 'gasto').reduce((s, r) => s + Number(r.monto || 0), 0);
+      const c = document.createElement('div'); c.className = 'cards';
+      c.innerHTML = `
+    <div class="stat"><div class="k">Ingresos</div><div class="v" style="color:var(--ok)">${money(ing)}</div></div>
+    <div class="stat"><div class="k">Gastos</div><div class="v" style="color:var(--bad)">${money(gas)}</div></div>
+    <div class="stat"><div class="k">Saldo</div><div class="v" style="color:var(--brand)">${money(ing - gas)}</div></div>`;
+      return c;
+    }
+
+    /* ---------------- formulario (crear/editar) ---------------- */
+    $('#btnNew').onclick = () => openForm(state.tab, null);
+    $('#btnNewFab').onclick = () => openForm(state.tab, null);
+    $('#btnCancel').onclick = closeForm;
+    $('#overlay').addEventListener('click', e => { if (e.target.id === 'overlay') closeForm(); });
+
+    function openForm(tab, id) {
+      const mod = MODULES[tab];
+      state.editing = { tab, id };
+      const rec = id ? (state.data[mod.table] || []).find(r => r.id === id) : {};
+      $('#modalTitle').textContent = (id ? 'Editar ' : 'Nuevo ') + mod.title;
+      $('#form').innerHTML = mod.fields.map(f => {
+        const val = rec[f.k] ?? (f.def ? f.def() : '');
+        let input;
+        if (f.t === 'textarea') input = `<textarea name="${f.k}" rows="3">${esc(val)}</textarea>`;
+        else if (f.t === 'select') input = `<select name="${f.k}">${f.opts.map(o => `<option ${o === val ? 'selected' : ''}>${o}</option>`).join('')}</select>`;
+        else input = `<input name="${f.k}" type="${f.t}" value="${esc(val)}" ${f.t === 'number' ? 'step="any"' : ''}>`;
+        return `<div class="field"><label>${f.l}${f.req ? ' *' : ''}</label>${input}</div>`;
+      }).join('');
+      $('#overlay').classList.add('show');
+    }
+    function closeForm() { $('#overlay').classList.remove('show'); state.editing = null; }
+
+    $('#btnSave').onclick = async () => {
+      const { tab, id } = state.editing || {};
+      const mod = MODULES[tab];
+      const obj = {};
+      for (const f of mod.fields) {
+        let v = $('#form').querySelector(`[name="${f.k}"]`).value;
+        if (f.req && v === '') { alert(`"${f.l}" es obligatorio.`); return; }
+        if (v === '') v = null;
+        if (f.t === 'number' && v != null) v = Number(v);
+        obj[f.k] = v;
+      }
+      let error;
+      if (id) {
+        ({ error } = await sb.from(mod.table).update(obj).eq('id', id));
+      } else {
+        ({ error } = await sb.from(mod.table).insert(obj));
+      }
+      if (error) { alert('No se pudo guardar: ' + error.message); return; }
+      await loadAll(); closeForm(); show(tab);
+    };
+
+    async function del(tab, id) {
+      if (!confirm('¿Borrar este registro?')) return;
+      const { error } = await sb.from(MODULES[tab].table).delete().eq('id', id);
+      if (error) { alert('No se pudo borrar: ' + error.message); return; }
+      await loadAll(); show(tab);
+    }
+
+    /* ---------------- equipo (solo admin) ---------------- */
+    function renderTeam(v) {
+      const rows = sortRows(state.data.profiles || [], null);
+      const hint = document.createElement('div'); hint.className = 'empty'; hint.style.marginBottom = '16px';
+      hint.innerHTML = 'Para crear una cuenta nueva: <b>Supabase → Authentication → Add user</b> ' +
+        '(correo y contraseña). Al crearla, aparecerá aquí y podrás asignarle rol.';
+      if (rows.length) {
+        const wrap = document.createElement('div'); wrap.className = 'table-wrap';
+        const t = document.createElement('table');
+        t.innerHTML = `<thead><tr><th>Nombre</th><th>Correo</th><th>Rol</th><th></th></tr></thead>
+      <tbody>${rows.map(r => `<tr>
+        <td>${esc(r.nombre || '—')}</td>
+        <td>${esc(r.email || '—')}</td>
+        <td><span class="badge ${r.role === 'admin' ? 'b-prox' : 'b-fin'}">${r.role}</span></td>
+        <td><div class="row-actions">${r.role === 'admin'
+            ? `<button class="btn-ghost btn-sm" data-role="editor" data-id="${r.id}">Hacer editor</button>`
+            : `<button class="btn-brand btn-sm" data-role="admin" data-id="${r.id}">Hacer admin</button>`}</div></td>
+      </tr>`).join('')}</tbody>`;
+        wrap.appendChild(t); v.append(hint, wrap);
+        t.querySelectorAll('[data-role]').forEach(b => b.onclick = () => setRole(b.dataset.id, b.dataset.role));
+      } else { v.append(hint); }
+    }
+    async function setRole(id, role) {
+      const { error } = await sb.from('profiles').update({ role }).eq('id', id);
+      if (error) { alert('No se pudo cambiar el rol: ' + error.message); return; }
+      await loadAll(); show('equipo');
+    }
+
+    /* ---------------- calendario ---------------- */
+    const MESES = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+    function renderCalendar(v) {
+      const d = state.calDate;
+      const y = d.getFullYear(), m = d.getMonth();
+      const first = new Date(y, m, 1);
+      const startDow = (first.getDay() + 6) % 7; // lunes = 0
+      const daysInMonth = new Date(y, m + 1, 0).getDate();
+      const prevDays = new Date(y, m, 0).getDate();
+
+      const events = collectEvents();
+      const hoy = hoyISO();
+
+      let cells = '';
+      const dow = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
+      for (let i = 0; i < 7; i++) cells += `<div class="dow">${dow[i]}</div>`;
+      const total = Math.ceil((startDow + daysInMonth) / 7) * 7;
+      for (let i = 0; i < total; i++) {
+        let day, mm = m, yy = y, out = false;
+        if (i < startDow) { day = prevDays - startDow + 1 + i; mm = m - 1; out = true; }
+        else if (i >= startDow + daysInMonth) { day = i - (startDow + daysInMonth) + 1; mm = m + 1; out = true; }
+        else day = i - startDow + 1;
+        const dt = new Date(yy, mm, day);
+        const iso = `${dt.getFullYear()}-${pad(dt.getMonth() + 1)}-${pad(dt.getDate())}`;
+        const evs = events.filter(e => e.date === iso);
+        cells += `<div class="cal-cell ${out ? 'out' : ''} ${iso === hoy ? 'today' : ''}">
+      <div class="num">${day}</div>
+      ${evs.map(e => `<div class="ev ev-${e.tipo}" title="${esc(e.label)}">${esc(e.label)}</div>`).join('')}
+    </div>`;
+      }
+      v.innerHTML = `<div class="cal">
+    <div class="cal-head">
+      <button class="btn-ghost btn-sm" id="prevM">‹</button>
+      <h3>${MESES[m]} ${y}</h3>
+      <button class="btn-ghost btn-sm" id="nextM">›</button>
+    </div>
+    <div class="cal-grid">${cells}</div>
+  </div>
+  <div style="margin-top:14px;display:flex;gap:16px;font-size:13px" class="muted">
+    <span><span class="ev ev-e" style="padding:2px 8px">Evento</span></span>
+    <span><span class="ev ev-d" style="padding:2px 8px">Deber</span></span>
+    <span><span class="ev ev-p" style="padding:2px 8px">Prueba</span></span>
+  </div>`;
+      $('#prevM').onclick = () => { state.calDate = new Date(y, m - 1, 1); show('calendario'); };
+      $('#nextM').onclick = () => { state.calDate = new Date(y, m + 1, 1); show('calendario'); };
+    }
+    function collectEvents() {
+      const out = [];
+      (state.data.eventos || []).forEach(r => {
+        if (!r.inicio) return;
+        out.push({ date: r.inicio, tipo: 'e', label: '📅 ' + r.titulo });
+        // eventos de varios días: marcar el día de fin también
+        if (r.fin && r.fin !== r.inicio) out.push({ date: r.fin, tipo: 'e', label: '🏁 fin: ' + r.titulo });
+      });
+      (state.data.deberes || []).forEach(r => { if (r.entrega) out.push({ date: r.entrega, tipo: 'd', label: '📝 ' + r.titulo }); });
+      (state.data.pruebas || []).forEach(r => { if (r.fecha) out.push({ date: r.fecha, tipo: 'p', label: '🧪 ' + r.titulo }); });
+      return out;
+    }
+
+    /* ---------------- realtime ---------------- */
+    function subscribe() {
+      sb.channel('cambios')
+        .on('postgres_changes', { event: '*', schema: 'public' }, async () => {
+          await loadAll();
+          show(state.tab);
+        })
+        .subscribe();
+    }
+
+    /* ---------------- arranque ---------------- */
+    if (!configured) {
+      $('#login').classList.remove('hidden');
+      $('#loginMsg').textContent = 'Antes de usar: abre este archivo y pega SUPABASE_URL y SUPABASE_ANON_KEY.';
+      $('#loginMsg').className = 'msg err';
+    } else {
+      sb.auth.onAuthStateChange((_e, session) => {
+        if (session && !state.user) start(session.user);
+      });
+      boot().then(() => { if (state.user) subscribe(); });
+    }
+  </script>
+</body>
+
+</html>
