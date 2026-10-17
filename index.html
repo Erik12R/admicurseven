@@ -7,17 +7,20 @@
   <title>Panel del Curso</title>
   <style>
     :root {
-      --bg: #0f172a;
+      --bg: #eef2ff;
       --card: #ffffff;
-      --ink: #0f172a;
+      --ink: #1e1b4b;
       --muted: #64748b;
-      --line: #e2e8f0;
-      --brand: #2563eb;
-      --brand2: #1d4ed8;
-      --ok: #16a34a;
-      --warn: #d97706;
-      --bad: #dc2626;
-      --soft: #f1f5f9;
+      --line: #e9e6ff;
+      --brand: #6366f1;
+      --brand2: #4f46e5;
+      --brandGrad: linear-gradient(135deg, #6366f1 0%, #8b5cf6 55%, #d946ef 130%);
+      --ok: #10b981;
+      --warn: #f59e0b;
+      --bad: #ef4444;
+      --soft: #f5f3ff;
+      --shadow: 0 10px 34px rgba(99, 102, 241, .12);
+      --shadow-sm: 0 4px 14px rgba(99, 102, 241, .10);
     }
 
     * {
@@ -28,15 +31,26 @@
       margin: 0;
       font-family: system-ui, Segoe UI, Roboto, Arial, sans-serif;
       color: var(--ink);
-      background: #f8fafc
+      min-height: 100vh;
+      background:
+        radial-gradient(1100px 600px at 100% -10%, #fbe8ff 0%, rgba(251, 232, 255, 0) 55%),
+        radial-gradient(900px 500px at -10% 0%, #e0f2fe 0%, rgba(224, 242, 254, 0) 50%),
+        linear-gradient(160deg, #eef2ff 0%, #f6f3ff 45%, #fdf2ff 100%);
+      background-attachment: fixed;
+      background-repeat: no-repeat
     }
 
     button {
       font: inherit;
       cursor: pointer;
       border: none;
-      border-radius: 8px;
-      padding: 9px 14px
+      border-radius: 10px;
+      padding: 9px 14px;
+      transition: transform .08s ease, box-shadow .15s ease, background .15s ease, filter .15s ease
+    }
+
+    button:active {
+      transform: translateY(1px)
     }
 
     input,
@@ -44,44 +58,49 @@
     textarea {
       font: inherit;
       width: 100%;
-      padding: 9px 10px;
+      padding: 9px 11px;
       border: 1px solid var(--line);
-      border-radius: 8px;
-      background: #fff
+      border-radius: 10px;
+      background: #fcfbff
     }
 
     input:focus,
     select:focus,
     textarea:focus {
-      outline: 2px solid #bfdbfe;
+      outline: 3px solid #ddd6fe;
       border-color: var(--brand)
     }
 
     .btn-brand {
-      background: var(--brand);
-      color: #fff
+      background: var(--brandGrad);
+      color: #fff;
+      box-shadow: 0 6px 18px rgba(99, 102, 241, .35)
     }
 
     .btn-brand:hover {
-      background: var(--brand2)
+      filter: brightness(1.06);
+      box-shadow: 0 8px 22px rgba(99, 102, 241, .45)
     }
 
     .btn-ghost {
-      background: var(--soft);
-      color: var(--ink)
+      background: #fff;
+      color: var(--brand2);
+      border: 1px solid var(--line)
     }
 
     .btn-ghost:hover {
-      background: #e2e8f0
+      background: var(--soft);
+      border-color: #ddd6fe
     }
 
     .btn-bad {
-      background: #fee2e2;
-      color: var(--bad)
+      background: #fff1f2;
+      color: var(--bad);
+      border: 1px solid #fecdd3
     }
 
     .btn-bad:hover {
-      background: #fecaca
+      background: #ffe4e6
     }
 
     .btn-sm {
@@ -95,20 +114,30 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      background: linear-gradient(135deg, #1e3a8a, #0f172a)
+      padding: 20px;
+      background:
+        radial-gradient(700px 420px at 15% 15%, rgba(129, 140, 248, .55), transparent 60%),
+        radial-gradient(700px 420px at 90% 85%, rgba(217, 70, 239, .45), transparent 60%),
+        linear-gradient(135deg, #312e81 0%, #4c1d95 55%, #701a75 100%)
     }
 
     .login-card {
-      background: #fff;
-      padding: 34px;
-      border-radius: 16px;
-      width: min(92vw, 380px);
-      box-shadow: 0 20px 60px rgba(0, 0, 0, .35)
+      background: rgba(255, 255, 255, .96);
+      backdrop-filter: blur(8px);
+      padding: 36px;
+      border-radius: 22px;
+      width: min(92vw, 400px);
+      box-shadow: 0 30px 70px rgba(30, 27, 75, .45);
+      border: 1px solid rgba(255, 255, 255, .6)
     }
 
     .login-card h1 {
       margin: 0 0 4px;
-      font-size: 22px
+      font-size: 26px;
+      background: var(--brandGrad);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent
     }
 
     .login-card p {
@@ -150,11 +179,13 @@
 
     /* ---- App ---- */
     header {
-      background: #fff;
+      background: rgba(255, 255, 255, .82);
+      backdrop-filter: blur(12px);
       border-bottom: 1px solid var(--line);
       position: sticky;
       top: 0;
-      z-index: 20
+      z-index: 20;
+      box-shadow: 0 6px 24px rgba(99, 102, 241, .08)
     }
 
     .bar {
@@ -168,11 +199,15 @@
 
     .bar .logo {
       font-weight: 800;
-      font-size: 18px
+      font-size: 19px;
+      letter-spacing: -.3px
     }
 
     .bar .logo span {
-      color: var(--brand)
+      background: var(--brandGrad);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent
     }
 
     .bar .sp {
@@ -192,9 +227,9 @@
 
     .role {
       font-size: 11px;
-      background: #dbeafe;
+      background: #ede9fe;
       color: var(--brand2);
-      padding: 2px 8px;
+      padding: 3px 10px;
       border-radius: 99px;
       font-weight: 700
     }
@@ -202,25 +237,30 @@
     nav {
       max-width: 1100px;
       margin: 0 auto;
-      padding: 0 18px;
+      padding: 0 14px 10px;
       display: flex;
-      gap: 6px;
+      gap: 8px;
       overflow-x: auto
     }
 
     nav button {
       background: transparent;
-      border-radius: 8px 8px 0 0;
+      border-radius: 10px;
       color: var(--muted);
       font-weight: 600;
-      padding: 11px 14px;
-      border-bottom: 3px solid transparent;
+      padding: 9px 14px;
       white-space: nowrap
     }
 
+    nav button:hover {
+      background: var(--soft);
+      color: var(--brand2)
+    }
+
     nav button.active {
-      color: var(--brand);
-      border-bottom-color: var(--brand)
+      color: #fff;
+      background: var(--brandGrad);
+      box-shadow: 0 8px 18px rgba(99, 102, 241, .35)
     }
 
     main {
@@ -238,7 +278,8 @@
 
     .head h2 {
       margin: 0;
-      font-size: 20px
+      font-size: 22px;
+      letter-spacing: -.3px
     }
 
     .head .sp {
@@ -248,15 +289,26 @@
     .cards {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-      gap: 12px;
+      gap: 14px;
       margin-bottom: 18px
     }
 
     .stat {
       background: #fff;
       border: 1px solid var(--line);
-      border-radius: 12px;
-      padding: 14px
+      border-radius: 16px;
+      padding: 16px;
+      box-shadow: var(--shadow-sm);
+      position: relative;
+      overflow: hidden
+    }
+
+    .stat::before {
+      content: "";
+      position: absolute;
+      inset: 0 auto 0 0;
+      width: 5px;
+      background: var(--brandGrad)
     }
 
     .stat .k {
@@ -267,7 +319,7 @@
     }
 
     .stat .v {
-      font-size: 22px;
+      font-size: 23px;
       font-weight: 800;
       margin-top: 4px
     }
@@ -277,25 +329,30 @@
       border-collapse: collapse;
       background: #fff;
       border: 1px solid var(--line);
-      border-radius: 12px;
-      overflow: hidden
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: var(--shadow-sm)
     }
 
     th,
     td {
       text-align: left;
-      padding: 11px 12px;
+      padding: 11px 13px;
       border-bottom: 1px solid var(--line);
       font-size: 14px;
       vertical-align: top
     }
 
+    tbody tr:hover {
+      background: #faf9ff
+    }
+
     th {
-      background: var(--soft);
+      background: linear-gradient(135deg, #eef2ff, #f6f0ff);
       font-size: 12px;
       text-transform: uppercase;
-      letter-spacing: .4px;
-      color: var(--muted)
+      letter-spacing: .5px;
+      color: var(--brand2)
     }
 
     tr:last-child td {
@@ -361,19 +418,20 @@
     }
 
     .empty {
-      padding: 40px;
+      padding: 44px;
       text-align: center;
       color: var(--muted);
       background: #fff;
-      border: 1px dashed var(--line);
-      border-radius: 12px
+      border: 1px dashed #ddd6fe;
+      border-radius: 16px
     }
 
     /* ---- Modal ---- */
     .overlay {
       position: fixed;
       inset: 0;
-      background: rgba(15, 23, 42, .55);
+      background: rgba(30, 27, 75, .55);
+      backdrop-filter: blur(3px);
       display: none;
       align-items: center;
       justify-content: center;
@@ -387,16 +445,17 @@
 
     .modal {
       background: #fff;
-      border-radius: 16px;
+      border-radius: 20px;
       width: min(96vw, 520px);
       max-height: 92vh;
       overflow: auto;
-      padding: 24px
+      padding: 26px;
+      box-shadow: 0 30px 70px rgba(30, 27, 75, .4)
     }
 
     .modal h3 {
       margin: 0 0 18px;
-      font-size: 19px
+      font-size: 20px
     }
 
     .modal .actions {
@@ -406,12 +465,38 @@
       margin-top: 20px
     }
 
+    /* ---- Modal de detalle (Ver) ---- */
+    .det-row {
+      display: flex;
+      gap: 12px;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--line)
+    }
+
+    .det-row:last-child {
+      border-bottom: 0
+    }
+
+    .det-k {
+      flex: 0 0 130px;
+      font-weight: 600;
+      color: var(--muted);
+      font-size: 13px
+    }
+
+    .det-v {
+      flex: 1;
+      white-space: pre-wrap;
+      word-break: break-word
+    }
+
     /* ---- Calendario ---- */
     .cal {
       background: #fff;
       border: 1px solid var(--line);
-      border-radius: 12px;
-      overflow: hidden
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: var(--shadow-sm)
     }
 
     .cal-head {
@@ -419,14 +504,16 @@
       align-items: center;
       gap: 12px;
       padding: 14px 16px;
-      border-bottom: 1px solid var(--line)
+      border-bottom: 1px solid var(--line);
+      background: linear-gradient(135deg, #eef2ff, #f6f0ff)
     }
 
     .cal-head h3 {
       margin: 0;
       font-size: 17px;
       flex: 1;
-      text-transform: capitalize
+      text-transform: capitalize;
+      color: var(--brand2)
     }
 
     .cal-grid {
@@ -435,13 +522,14 @@
     }
 
     .cal-grid .dow {
-      background: var(--soft);
+      background: #f5f3ff;
       text-align: center;
       font-size: 12px;
       font-weight: 700;
-      color: var(--muted);
-      padding: 8px 0;
-      text-transform: uppercase
+      color: var(--brand2);
+      padding: 9px 0;
+      text-transform: uppercase;
+      letter-spacing: .4px
     }
 
     .cal-cell {
@@ -462,11 +550,23 @@
     }
 
     .cal-cell.out {
-      background: #fbfcfe
+      background: #fbfaff
+    }
+
+    .cal-cell.out .num {
+      opacity: .42
     }
 
     .cal-cell.today {
-      background: #eff6ff
+      background: linear-gradient(160deg, #eef2ff, #faf5ff);
+      box-shadow: inset 0 0 0 2px #c7d2fe
+    }
+
+    .cal-cell.today .num {
+      background: var(--brandGrad);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent
     }
 
     .ev {
@@ -477,7 +577,8 @@
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      font-weight: 600
+      font-weight: 600;
+      cursor: pointer
     }
 
     .ev-e {
@@ -504,9 +605,10 @@
       right: 22px;
       bottom: 22px;
       border-radius: 99px;
-      padding: 14px 20px;
-      box-shadow: 0 10px 30px rgba(37, 99, 235, .4);
-      display: none
+      padding: 14px 22px;
+      box-shadow: 0 14px 34px rgba(99, 102, 241, .5);
+      display: none;
+      font-weight: 700
     }
 
     /* ---- Indicador "en vivo" ---- */
@@ -569,8 +671,8 @@
       .who { text-align: right }
       main { padding: 18px 12px 90px }
       .head h2 { font-size: 18px }
-      nav { padding: 0 12px }
-      nav button { padding: 10px 12px; font-size: 14px }
+      nav { padding: 0 12px 8px }
+      nav button { padding: 9px 12px; font-size: 14px }
       th, td { padding: 9px 10px; font-size: 13px }
       .cal-cell { min-height: 68px; padding: 4px }
       .ev { font-size: 10px }
@@ -641,6 +743,17 @@
       <div class="actions">
         <button type="button" class="btn-ghost" id="btnCancel">Cancelar</button>
         <button type="button" class="btn-brand" id="btnSave">Guardar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= MODAL DE DETALLE ================= -->
+  <div class="overlay" id="detailOverlay">
+    <div class="modal">
+      <h3 id="detailTitle">Detalle</h3>
+      <div id="detailBody"></div>
+      <div class="actions">
+        <button type="button" class="btn-brand" id="detailClose">Cerrar</button>
       </div>
     </div>
   </div>
@@ -872,15 +985,17 @@
       }
       const editable = canEdit();
       const t = document.createElement('table');
-      t.innerHTML = `<thead><tr>${mod.cols.map(c => `<th>${c.l}</th>`).join('')}${editable ? '<th></th>' : ''}</tr></thead>`
+      t.innerHTML = `<thead><tr>${mod.cols.map(c => `<th>${c.l}</th>`).join('')}<th></th></tr></thead>`
         + `<tbody>${rows.map(r => `<tr>
         ${mod.cols.map(c => `<td>${c.render ? c.render(r) : esc(r[c.k] ?? '')}</td>`).join('')}
-        ${editable ? `<td><div class="row-actions">
-          <button class="btn-ghost btn-sm" data-edit="${r.id}">Editar</button>
-          <button class="btn-bad btn-sm" data-del="${r.id}">Borrar</button>
-        </div></td>` : ''}</tr>`).join('')}</tbody>`;
+        <td><div class="row-actions">
+          <button class="btn-ghost btn-sm" data-view="${r.id}">Ver</button>
+          ${editable ? `<button class="btn-ghost btn-sm" data-edit="${r.id}">Editar</button>
+          <button class="btn-bad btn-sm" data-del="${r.id}">Borrar</button>` : ''}
+        </div></td></tr>`).join('')}</tbody>`;
       wrap.appendChild(t);
       v.appendChild(wrap);
+      t.querySelectorAll('[data-view]').forEach(b => b.onclick = () => openDetail(tab, +b.dataset.view));
       if (editable) {
         t.querySelectorAll('[data-edit]').forEach(b => b.onclick = () => openForm(tab, +b.dataset.edit));
         t.querySelectorAll('[data-del]').forEach(b => b.onclick = () => del(tab, +b.dataset.del));
@@ -919,6 +1034,28 @@
       $('#overlay').classList.add('show');
     }
     function closeForm() { $('#overlay').classList.remove('show'); state.editing = null; }
+
+    /* ---------------- detalle (Ver) ---------------- */
+    $('#detailClose').onclick = closeDetail;
+    $('#detailOverlay').addEventListener('click', e => { if (e.target.id === 'detailOverlay') closeDetail(); });
+
+    function openDetail(tab, id) {
+      const mod = MODULES[tab];
+      if (!mod || !mod.table) return;
+      const rec = (state.data[mod.table] || []).find(r => r.id === id);
+      if (!rec) return;
+      $('#detailTitle').textContent = (mod.icon ? mod.icon + ' ' : '') + (rec.titulo || mod.title);
+      $('#detailBody').innerHTML = mod.fields.map(f => {
+        let val = rec[f.k];
+        if (f.t === 'date') val = fmt(val);
+        else if (tab === 'deberes' && f.k === 'estado') {
+          val = (rec.estado === 'finalizado' || (rec.entrega && rec.entrega < hoyISO())) ? 'finalizado' : 'por realizar';
+        } else if (val == null || val === '') val = '—';
+        return `<div class="det-row"><div class="det-k">${f.l}</div><div class="det-v">${esc(val)}</div></div>`;
+      }).join('');
+      $('#detailOverlay').classList.add('show');
+    }
+    function closeDetail() { $('#detailOverlay').classList.remove('show'); }
 
     $('#btnSave').onclick = async () => {
       const { tab, id } = state.editing || {};
@@ -1019,7 +1156,7 @@
         const evs = events.filter(e => e.date === iso);
         cells += `<div class="cal-cell ${out ? 'out' : ''} ${iso === hoy ? 'today' : ''}">
       <div class="num">${day}</div>
-      ${evs.map(e => `<div class="ev ev-${e.tipo}" title="${esc(e.label)}">${esc(e.label)}</div>`).join('')}
+      ${evs.map(e => `<div class="ev ev-${e.tipo}" data-tab="${e.tab}" data-id="${e.id}" title="${esc(e.label)}">${esc(e.label)}</div>`).join('')}
     </div>`;
       }
       v.innerHTML = `<div class="cal">
@@ -1037,17 +1174,20 @@
   </div>`;
       $('#prevM').onclick = () => { state.calDate = new Date(y, m - 1, 1); show('calendario'); };
       $('#nextM').onclick = () => { state.calDate = new Date(y, m + 1, 1); show('calendario'); };
+      v.querySelectorAll('.ev[data-id]').forEach(el => {
+        el.onclick = () => openDetail(el.dataset.tab, +el.dataset.id);
+      });
     }
     function collectEvents() {
       const out = [];
       (state.data.eventos || []).forEach(r => {
         if (!r.inicio) return;
-        out.push({ date: r.inicio, tipo: 'e', label: '📅 ' + r.titulo });
+        out.push({ date: r.inicio, tipo: 'e', label: '📅 ' + r.titulo, tab: 'eventos', id: r.id });
         // eventos de varios días: marcar el día de fin también
-        if (r.fin && r.fin !== r.inicio) out.push({ date: r.fin, tipo: 'e', label: '🏁 fin: ' + r.titulo });
+        if (r.fin && r.fin !== r.inicio) out.push({ date: r.fin, tipo: 'e', label: '🏁 fin: ' + r.titulo, tab: 'eventos', id: r.id });
       });
-      (state.data.deberes || []).forEach(r => { if (r.entrega) out.push({ date: r.entrega, tipo: 'd', label: '📝 ' + r.titulo }); });
-      (state.data.pruebas || []).forEach(r => { if (r.fecha) out.push({ date: r.fecha, tipo: 'p', label: '🧪 ' + r.titulo }); });
+      (state.data.deberes || []).forEach(r => { if (r.entrega) out.push({ date: r.entrega, tipo: 'd', label: '📝 ' + r.titulo, tab: 'deberes', id: r.id }); });
+      (state.data.pruebas || []).forEach(r => { if (r.fecha) out.push({ date: r.fecha, tipo: 'p', label: '🧪 ' + r.titulo, tab: 'pruebas', id: r.id }); });
       return out;
     }
 
