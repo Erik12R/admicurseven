@@ -616,7 +616,6 @@
       <div class="bar">
         <div class="logo">Panel del <span>Curso</span></div>
         <div class="sp"></div>
-        <span class="live off" id="live"><span class="dot"></span><span id="liveTxt">En vivo</span></span>
         <div class="who"><b id="whoName">—</b><br><span id="whoMail"></span></div>
         <span class="role" id="whoRole">editor</span>
         <button class="btn-ghost btn-sm" id="btnLogout">Salir</button>
@@ -685,14 +684,14 @@
           { k: 'titulo', l: 'Título', t: 'text', req: true },
           { k: 'materia', l: 'Materia', t: 'text' },
           { k: 'entrega', l: 'Entrega', t: 'date' },
-          { k: 'estado', l: 'Estado', t: 'select', opts: ['pendiente', 'hecho'] },
+          { k: 'estado', l: 'Estado', t: 'select', opts: ['por realizar', 'finalizado'], def: () => 'por realizar' },
           { k: 'descripcion', l: 'Descripción', t: 'textarea' }
         ],
         cols: [
           { l: 'Título', k: 'titulo' },
           { l: 'Materia', render: r => r.materia || '—' },
           { l: 'Entrega', render: r => fmt(r.entrega) },
-          { l: 'Estado', render: r => `<span class="badge ${r.estado === 'hecho' ? 'b-hecho' : 'b-pend'}">${r.estado}</span>` }
+          { l: 'Estado', render: r => estadoDeber(r) }
         ]
       },
       pruebas: {
@@ -718,14 +717,12 @@
         fields: [
           { k: 'fecha', l: 'Fecha', t: 'date', req: true, def: hoyISO },
           { k: 'concepto', l: 'Concepto', t: 'text', req: true },
-          { k: 'estudiante', l: 'Estudiante', t: 'text' },
           { k: 'tipo', l: 'Tipo', t: 'select', opts: ['ingreso', 'gasto'] },
           { k: 'monto', l: 'Monto', t: 'number', req: true }
         ],
         cols: [
           { l: 'Fecha', render: r => fmt(r.fecha) },
           { l: 'Concepto', k: 'concepto' },
-          { l: 'Estudiante', render: r => r.estudiante || '—' },
           { l: 'Tipo', render: r => `<span class="badge ${r.tipo === 'ingreso' ? 'b-ing' : 'b-gas'}">${r.tipo}</span>` },
           { l: 'Monto', render: r => money(r.monto) }
         ]
@@ -748,6 +745,10 @@
       if (r.fin && hoy > r.fin) return '<span class="badge b-fin">Finalizado</span>';
       if (r.inicio <= hoy && (!r.fin || hoy <= r.fin)) return '<span class="badge b-curso">En curso</span>';
       return '<span class="badge b-fin">—</span>';
+    }
+    function estadoDeber(r) {
+      const fin = r.estado === 'finalizado' || (r.entrega && r.entrega < hoyISO());
+      return fin ? '<span class="badge b-fin">finalizado</span>' : '<span class="badge b-pend">por realizar</span>';
     }
     function toast(text, ok = true) {
       const m = $('#loginMsg');
@@ -802,9 +803,16 @@
       $('#app').classList.remove('hidden');
 
       buildTabs();
+      await finalizarDeberes();
       await loadAll();
       show('eventos');
       subscribe();
+      setInterval(async () => {
+        if (!hayDeberesVencidos()) return;
+        await finalizarDeberes();
+        await reloadTable('deberes');
+        scheduleRender();
+      }, 60000);
     }
 
     function buildTabs() {
@@ -942,6 +950,7 @@
 
     /* ---------------- equipo (solo admin) ---------------- */
     function renderTeam(v) {
+      if (!state.profile || state.profile.role !== 'admin') return;
       const rows = sortRows(state.data.profiles || [], null);
       const hint = document.createElement('div'); hint.className = 'empty'; hint.style.marginBottom = '16px';
       hint.innerHTML = 'Para crear una cuenta nueva: <b>Supabase → Authentication → Users → Add user</b> ' +
@@ -1052,6 +1061,13 @@
     async function reloadTable(table) {
       const { data, error } = await sb.from(table).select('*');
       if (!error) state.data[table] = data || [];
+    }
+    async function finalizarDeberes() {
+      try { await sb.rpc('finalizar_deberes'); } catch (e) { /* la función aún no existe en la base */ }
+    }
+    function hayDeberesVencidos() {
+      const hoy = hoyISO();
+      return (state.data.deberes || []).some(r => r.estado !== 'finalizado' && r.entrega && r.entrega < hoy);
     }
     function scheduleRender() {
       clearTimeout(state.renderTimer);

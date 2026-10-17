@@ -109,10 +109,37 @@ create table if not exists public.deberes (
   materia     text,
   descripcion text,
   entrega     date,
-  estado      text not null default 'pendiente' check (estado in ('pendiente','hecho')),
+  estado      text not null default 'por realizar' check (estado in ('por realizar','finalizado')),
   created_by  uuid default auth.uid() references auth.users(id) on delete set null,
   created_at  timestamptz not null default now()
 );
+
+-- Migración del estado de deberes (bases ya existentes):
+-- los estados viejos ('pendiente'/'hecho') pasan a 'por realizar'/'finalizado'.
+alter table public.deberes drop constraint if exists deberes_estado_check;
+update public.deberes set estado = 'por realizar' where estado = 'pendiente';
+update public.deberes set estado = 'finalizado'  where estado = 'hecho';
+alter table public.deberes alter column estado set default 'por realizar';
+alter table public.deberes add constraint deberes_estado_check
+  check (estado in ('por realizar','finalizado'));
+
+-- Marca como 'finalizado' los deberes cuya fecha de entrega ya pasó.
+-- Es SECURITY DEFINER para que cualquier usuario con sesión pueda
+-- dispararla (la página la llama al cargar) sin necesidad de permiso de edición.
+create or replace function public.finalizar_deberes()
+returns void
+language sql
+security definer
+set search_path = public
+as $$
+  update public.deberes
+     set estado = 'finalizado'
+   where estado <> 'finalizado'
+     and entrega is not null
+     and entrega < current_date;
+$$;
+
+grant execute on function public.finalizar_deberes() to authenticated;
 
 create table if not exists public.pruebas (
   id          bigint generated always as identity primary key,
